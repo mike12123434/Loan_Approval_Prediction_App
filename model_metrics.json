@@ -1,0 +1,46 @@
+{
+  "classifier": {
+    "train_accuracy": 1.0,
+    "test_accuracy": 0.9988290398126464,
+    "precision": 0.9981203007518797,
+    "recall": 1.0,
+    "f1_score": 0.9990592662276576,
+    "auc_roc": 1.0,
+    "confusion_matrix": [
+      [
+        322,
+        1
+      ],
+      [
+        0,
+        531
+      ]
+    ],
+    "cv_accuracy": 0.9976573938506588
+  },
+  "regressor": {
+    "train_r2": 0.9997813984327488,
+    "test_r2": 0.9995690459401383,
+    "mae": 0.03218381597886096,
+    "rmse": 0.04443034346813941
+  },
+  "optimal_threshold": {
+    "threshold": 0.654894472137875,
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0
+  },
+  "feature_importance": {
+    "cibil_score": 0.826734389518953,
+    "loan_term": 0.06104407221505479,
+    "loan_to_income_ratio": 0.03433459116327223,
+    "asset_to_loan_ratio": 0.019940407874781265,
+    "loan_amount": 0.009587991389816815,
+    "total_assets": 0.008474625731077696,
+    "luxury_assets_value": 0.008342834167609437,
+    "bank_asset_value": 0.007138475700408682,
+    "residential_assets_value": 0.007110107295748902,
+    "commercial_assets_value": 0.007060036144982248
+  },
+  "optimal_threshold_value": 0.654894472137875
+}
