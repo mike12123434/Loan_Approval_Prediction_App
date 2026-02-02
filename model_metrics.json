@@ -1,0 +1,81 @@
+{
+  "classifier": {
+    "train_accuracy": 0.9996554100620262,
+    "val_accuracy": 1.0,
+    "test_accuracy": 0.9988290398126464,
+    "precision": 0.9981203007518797,
+    "recall": 1.0,
+    "f1_score": 0.9990592662276576,
+    "auc_roc": 1.0,
+    "confusion_matrix": [
+      [
+        322,
+        1
+      ],
+      [
+        0,
+        531
+      ]
+    ],
+    "cv_accuracy": 0.9991215226939971,
+    "cv_std": 0.0011713030746705543
+  },
+  "regressor": {
+    "train_r2": 0.9996139893761166,
+    "val_r2": 0.9994281431314486,
+    "test_r2": -290.150634765625,
+    "mae": 7.881833076477051,
+    "rmse": 8.274648201370576
+  },
+  "optimal_threshold": {
+    "threshold": 0.5780280828475952,
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "j_statistic": 1.0
+  },
+  "feature_importance": {
+    "loan_term": 0.12399818003177643,
+    "cibil_score": 0.8209221959114075,
+    "loan_to_income_ratio": 0.03799363970756531,
+    "asset_to_loan_ratio": 0.017086002975702286
+  },
+  "optimal_threshold_value": 0.5780280828475952,
+  "selected_features": [
+    "loan_term",
+    "cibil_score",
+    "loan_to_income_ratio",
+    "asset_to_loan_ratio"
+  ],
+  "feature_selection_report": {
+    "selected_features": [
+      "loan_term",
+      "cibil_score",
+      "loan_to_income_ratio",
+      "asset_to_loan_ratio"
+    ],
+    "n_selected": 4,
+    "p_values": {
+      "no_of_dependents": 0.23668903607767336,
+      "education_encoded": NaN,
+      "self_employed_encoded": NaN,
+      "income_annum": 0.32110512407104685,
+      "loan_amount": 0.2914522504516055,
+      "loan_term": 1.291185463829176e-13,
+      "cibil_score": 0.0,
+      "residential_assets_value": 0.34801479256209944,
+      "commercial_assets_value": 0.5901515011093148,
+      "luxury_assets_value": 0.3124036068561609,
+      "bank_asset_value": 0.6579376940187669,
+      "total_assets": 0.46117783229169484,
+      "loan_to_income_ratio": 9.402463424485629e-09,
+      "asset_to_loan_ratio": 0.0010658815452210145
+    },
+    "mutual_info_scores": {
+      "loan_term": 0.0023177815939614543,
+      "cibil_score": 0.0,
+      "loan_to_income_ratio": 0.0,
+      "asset_to_loan_ratio": 0.012156948209276264
+    }
+  }
+}
