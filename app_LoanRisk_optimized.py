@@ -10,7 +10,7 @@ import os
 import warnings
 
 from config import *
-from model_trainer import LoanModelTrainer
+from model_trainer import AdvancedLoanModelTrainer
 from assessment import (
     calculate_credit_score, 
     get_hybrid_assessment,
@@ -135,19 +135,36 @@ st.markdown("""
 @st.cache_resource
 def init_models():
     """初始化模型（載入或訓練）"""
-    trainer = LoanModelTrainer()
+    trainer = AdvancedLoanModelTrainer()
     
     # 嘗試載入已保存的模型
-    if trainer.load_models():
-        return (
-            trainer.clf, 
-            trainer.reg, 
-            trainer.le_edu, 
-            trainer.le_emp, 
-            trainer.feature_cols,
-            trainer.optimal_threshold,
-            trainer.metrics
-        )
+    try:
+        if trainer.load_models():
+            # 使用選定的特徵
+            feature_cols = trainer.selected_features if trainer.selected_features else trainer.feature_cols
+            
+            return (
+                trainer.clf, 
+                trainer.reg, 
+                trainer.le_edu, 
+                trainer.le_emp, 
+                feature_cols,
+                trainer.optimal_threshold,
+                trainer.metrics
+            )
+    except Exception as e:
+        st.error(f"""
+        ❌ 載入模型時發生錯誤: {str(e)}
+        
+        可能的原因:
+        1. 模型檔案損壞
+        2. JSON 格式錯誤
+        
+        解決方案:
+        1. 刪除 models/ 目錄
+        2. 重新執行: python model_trainer.py
+        """)
+        return None
     
     # 如果沒有保存的模型，顯示錯誤訊息
     st.error("""
@@ -165,6 +182,26 @@ def init_models():
     - models/model_metrics.json
     """)
     return None
+
+def align_features_to_model(raw_features: dict, feature_cols: list) -> pd.DataFrame:
+    """
+    將 UI 產生的 raw features
+    對齊成「模型訓練時的 input features」
+
+    - 多的欄位自動丟掉
+    - 少的欄位自動補 0
+    - 欄位順序完全一致
+    """
+    df = pd.DataFrame([raw_features])
+
+    # 補缺失欄位
+    for col in feature_cols:
+        if col not in df.columns:
+            df[col] = 0
+
+    # 僅保留模型需要的欄位（順序一致）
+    return df[feature_cols]
+
 
 # ==================== 主程式 ====================
 
@@ -186,19 +223,26 @@ def main():
     # 顯示模型資訊
     with st.expander("ℹ️ 模型資訊", expanded=False):
         col1, col2, col3 = st.columns(3)
+        
+        # 安全地獲取指標，避免 KeyError
+        classifier_metrics = metrics.get('classifier', {})
+        
         with col1:
-            st.metric("模型準確率", f"{metrics['classifier']['test_accuracy']:.2%}")
+            test_acc = classifier_metrics.get('test_accuracy', 0)
+            st.metric("模型準確率", f"{test_acc:.2%}" if test_acc else "N/A")
         with col2:
-            st.metric("AUC-ROC", f"{metrics['classifier']['auc_roc']:.3f}")
+            auc_roc = classifier_metrics.get('auc_roc', 0)
+            st.metric("AUC-ROC", f"{auc_roc:.3f}" if auc_roc else "N/A")
         with col3:
             st.metric("最佳閾值", f"{optimal_threshold:.3f}")
         
         st.markdown(f"""
         **模型說明：**
-        - 使用 Random Forest 演算法
+        - 使用 XGBoost/Random Forest 演算法
         - 訓練樣本數：根據實際數據訓練
         - 特徵數量：{len(feature_cols)} 個
         - 最佳閾值通過 ROC 曲線優化得出
+        - 整合特徵選擇、交叉驗證、正則化等進階技術
         """)
     
     # ==================== 輸入區域 ====================
@@ -380,12 +424,40 @@ def main():
                 st.stop()
             
             # ==================== AI 模型預測 ====================
-            
+            # ====================
+            # 1️⃣ 建立 raw features（UI 層）
+            # ====================
+            raw_features = {
+                "no_of_dependents": dependents,
+                "education": edu_encoded,
+                "self_employed": emp_encoded,
+                "income_annum": ann_income,
+                "loan_amount": loan_amt,
+                "loan_term": term_yr * 12,
+                "cibil_score": credit_score,
+                "residential_assets_value": est_residential,
+                "commercial_assets_value": est_commercial,
+                "luxury_assets_value": est_luxury,
+                "bank_asset_value": est_bank,
+                "total_assets": total_assets,
+                "loan_to_income_ratio": loan_to_income,
+                "asset_to_loan_ratio": asset_to_loan
+            }
+
+            # ====================
+            # 2️⃣ 對齊模型訓練時的 input features（關鍵）
+            # ====================
+            X_model = align_features_to_model(raw_features, feature_cols)
+
+            # ====================
+            # 3️⃣ 模型預測（永遠不會 shape mismatch）
+            # ====================
             try:
-                ai_prob = clf.predict_proba(features)[0][1]
+                ai_prob = clf.predict_proba(X_model)[0][1]
             except Exception as e:
                 st.error(f"❌ 模型預測錯誤: {str(e)}")
                 st.stop()
+
             
             # 混合評估
             final_prob, reason, rule_triggered = get_hybrid_assessment(
@@ -576,6 +648,12 @@ def main():
     
     # 頁尾
     st.markdown("---")
+    
+    # 安全地獲取指標
+    classifier_metrics = metrics.get('classifier', {})
+    test_acc = classifier_metrics.get('test_accuracy', 0)
+    auc_roc = classifier_metrics.get('auc_roc', 0)
+    
     st.markdown("""
     <div style='text-align: center; color: #a0aec0; font-size: 0.85rem; padding: 20px;'>
         <p><strong>⚠️ 重要聲明</strong></p>
@@ -586,8 +664,8 @@ def main():
         </p>
     </div>
     """.format(
-        metrics['classifier']['test_accuracy'],
-        metrics['classifier']['auc_roc'],
+        test_acc if test_acc else 0,
+        auc_roc if auc_roc else 0,
         optimal_threshold
     ), unsafe_allow_html=True)
 
