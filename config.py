@@ -18,26 +18,90 @@ RANDOM_STATE = 42
 TEST_SIZE = 0.2
 VALIDATION_SIZE = 0.15  # 從訓練集中再分出驗證集用於調參
 
-# RandomForest 分類器參數
-CLASSIFIER_PARAMS = {
+# ==================== 進階 ML 配置 ====================
+
+# 特徵選擇參數
+FEATURE_SELECTION_ENABLED = True
+CORRELATION_THRESHOLD = 0.95  # 移除高度相關特徵
+FEATURE_IMPORTANCE_THRESHOLD = 0.01  # 移除重要性過低特徵
+P_VALUE_THRESHOLD = 0.05  # 統計顯著性閾值
+
+# 交叉驗證參數
+CV_FOLDS = 5
+CV_SCORING = 'roc_auc'  # 評估指標
+
+# 超參數搜尋空間 (Grid Search / Random Search)
+HYPERPARAMETER_TUNING_ENABLED = True
+TUNING_METHOD = 'random'  # 'grid' or 'random'
+RANDOM_SEARCH_ITERATIONS = 50
+
+# ==================== 模型參數 ====================
+
+# XGBoost 分類器參數 (Gradient Boosting - 優於 Random Forest)
+XGBOOST_CLASSIFIER_PARAMS = {
+    'n_estimators': 200,
+    'max_depth': 6,
+    'learning_rate': 0.1,
+    'subsample': 0.8,
+    'colsample_bytree': 0.8,
+    'min_child_weight': 3,
+    'gamma': 0.1,  # 正則化參數
+    'reg_alpha': 0.1,  # L1 正則化
+    'reg_lambda': 1.0,  # L2 正則化
+    'random_state': RANDOM_STATE,
+    'n_jobs': -1,
+    'scale_pos_weight': 1,  # 處理類別不平衡
+    'eval_metric': 'logloss'
+}
+
+# XGBoost 分類器超參數搜尋空間
+XGBOOST_CLASSIFIER_PARAM_GRID = {
+    'n_estimators': [100, 200, 300],
+    'max_depth': [4, 6, 8],
+    'learning_rate': [0.01, 0.05, 0.1],
+    'subsample': [0.7, 0.8, 0.9],
+    'colsample_bytree': [0.7, 0.8, 0.9],
+    'min_child_weight': [1, 3, 5],
+    'gamma': [0, 0.1, 0.2],
+    'reg_alpha': [0, 0.1, 0.5],
+    'reg_lambda': [0.5, 1.0, 2.0]
+}
+
+# Random Forest 分類器參數 (作為 baseline)
+RANDOM_FOREST_CLASSIFIER_PARAMS = {
     'n_estimators': 100,
     'max_depth': 10,
     'min_samples_split': 5,
     'min_samples_leaf': 2,
+    'max_features': 'sqrt',  # 降維策略 (blessing of non-uniformity)
     'random_state': RANDOM_STATE,
     'n_jobs': -1,
-    'class_weight': 'balanced'  # 處理類別不平衡
+    'class_weight': 'balanced',
+    'max_samples': 0.8  # Bootstrap 抽樣比例
 }
 
-# RandomForest 迴歸器參數
-REGRESSOR_PARAMS = {
-    'n_estimators': 80,
-    'max_depth': 8,
-    'min_samples_split': 5,
-    'min_samples_leaf': 2,
+# XGBoost 迴歸器參數
+XGBOOST_REGRESSOR_PARAMS = {
+    'n_estimators': 200,
+    'max_depth': 5,
+    'learning_rate': 0.1,
+    'subsample': 0.8,
+    'colsample_bytree': 0.8,
+    'min_child_weight': 3,
+    'gamma': 0.1,
+    'reg_alpha': 0.1,  # L1 正則化
+    'reg_lambda': 1.0,  # L2 正則化
     'random_state': RANDOM_STATE,
     'n_jobs': -1
 }
+
+# 模型選擇
+USE_XGBOOST = True  # True: XGBoost, False: Random Forest
+USE_ENSEMBLE = True  # 使用多模型集成
+
+# Stacking 集成參數
+STACKING_ENABLED = True
+STACKING_CV_FOLDS = 3
 
 # ==================== 信用評分參數 ====================
 CREDIT_SCORE_BASE = 650
